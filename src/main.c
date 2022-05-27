@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <string.h>
 
-int console_pos = 1;
-
 /* REGISTER */
 enum
 {
@@ -75,6 +73,14 @@ enum
 uint16_t memory[MEMORY_MAX];  /* 65536 locations */
 
 int running = 1;
+//int console_row = 1;
+//int console_col = 1;
+PrintConsole topScreen, bottomScreen;
+
+void printc(char c){
+    consoleSelect(&topScreen);
+    printf("%c",c);
+}
 
 uint16_t sign_extend(uint16_t x, int bit_count)
 {
@@ -278,7 +284,7 @@ void trap_puts(uint16_t instr){
     uint16_t* c = memory + reg[R_R0];
     while (*c)
     {
-        printf("\x1b[1;%dH%c",console_pos++,(char)*c);
+        printc((char)*c);
         ++c;
     }
     fflush(stdout);
@@ -319,16 +325,11 @@ int main(int argc, char **argv)
 	gfxInitDefault();
 
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
-	consoleInit(GFX_TOP, NULL);
+	consoleInit(GFX_TOP, &topScreen);
+    consoleInit(GFX_BOTTOM, &bottomScreen);
 
-	//Move the cursor to row 15 and column 19 and then prints "Hello World!"
-	//To move the cursor you have to print "\x1b[r;cH", where r and c are respectively
-	//the row and column where you want your cursor to move
-	//The top screen has 30 rows and 50 columns
-	//The bottom screen has 30 rows and 40 columns
-	//printf("\x1b[16;20HHello World!");
 
-    read_image("helloworld.obj");
+    read_image("run.obj");
 
     /* MAIN */
     /* since exactly one condition flag should be set at any given time, set the Z flag */
